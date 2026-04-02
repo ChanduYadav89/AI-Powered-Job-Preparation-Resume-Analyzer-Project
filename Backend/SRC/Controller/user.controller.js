@@ -1,6 +1,7 @@
 import UserModel from "../Models/user.model.js";
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import BlacklistModel from "../Models/user.Blacklist.js";
 import dotenv from "dotenv"
 dotenv.config()
 
@@ -100,6 +101,34 @@ export async function userLogin(req,res){
         email : verifyUser.email,
         Username : verifyUser.username
     })
+}
+
+// user Logout
+
+export async function userLogout(req,res){
+    try {
+
+        const Token = req.cookies.token
+
+if(!Token){
+    return res.status(400).json({
+        message : "Token is not Found"
+    })
+}
+
+if(Token){
+    await BlacklistModel.create({Token})
+
+    res.clearCookie("Token")
+
+    res.status(200).json({
+        message : "User logout Successfully"
+    })
+}
+        
+    } catch (error) {
+        console.err(err)
+    }
 }
 
 
