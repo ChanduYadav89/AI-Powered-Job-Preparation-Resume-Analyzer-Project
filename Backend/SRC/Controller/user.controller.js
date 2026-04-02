@@ -43,7 +43,7 @@ export async function userRegister(req,res) {
         res.cookie("token", Token,{
             httpOnly : true,
             secure : true,
-            samesite : true,
+            samesite : "strict",
 
         })
 
@@ -60,7 +60,47 @@ export async function userRegister(req,res) {
     
 }
 
+// user Login Api
 
+export async function userLogin(req,res){
+    const {email , password} = req.body
+
+    const verifyUser = await UserModel.findOne({email})
+
+    if(!verifyUser){
+        return res.status(400).json({
+            message : "Invalid Email"
+        })
+    }
+
+    const verifyPass = await argon2.verify(verifyUser.password , password);
+
+
+    if(!verifyPass){
+        return res.status(400).json({
+            message : "Invalid Password"
+        })
+    }
+
+    const Token = jwt.sign({
+        id : verifyUser._id
+    },process.env.JWT_SECRET,{
+        expiresIn : "1d"
+    })
+
+    res.cookie("token", Token,{
+        httpOnly : true,
+        secure : true,
+        samesite : "strict",
+    })
+
+    return res.status(200).json({
+        message : "User successfully Login",
+        id : verifyUser._id,
+        email : verifyUser.email,
+        Username : verifyUser.username
+    })
+}
 
 
 
