@@ -35,13 +35,13 @@ export async function userRegister(req,res) {
             password : hashPassword
         })
 
-        const Token = jwt.sign({
+        const token = jwt.sign({
             id : User._id,
         },process.env.JWT_SECRET,{
             expiresIn : "1d",
         })
 
-        res.cookie("token", Token,{
+        res.cookie("token", token,{
             httpOnly : true,
             secure : true,
             samesite : "strict",
@@ -83,13 +83,13 @@ export async function userLogin(req,res){
         })
     }
 
-    const Token = jwt.sign({
+    const token = jwt.sign({
         id : verifyUser._id
     },process.env.JWT_SECRET,{
         expiresIn : "1d"
     })
 
-    res.cookie("token", Token,{
+    res.cookie("token", token,{
         httpOnly : true,
         secure : true,
         samesite : "strict",
@@ -108,18 +108,18 @@ export async function userLogin(req,res){
 export async function userLogout(req,res){
     try {
 
-        const Token = req.cookies.token
+        const token = req.cookies.token
 
-if(!Token){
+if(!token){
     return res.status(400).json({
-        message : "Token is not Found"
+        message : "token is not Found"
     })
 }
 
-if(Token){
-    await BlacklistModel.create({Token})
+if(token){
+    await BlacklistModel.create({token})
 
-    res.clearCookie("Token")
+    res.clearCookie("token")
 
     res.status(200).json({
         message : "User logout Successfully"
@@ -127,9 +127,27 @@ if(Token){
 }
         
     } catch (error) {
-        console.err(err)
+        console.error(error)
     }
 }
+
+// get the information of user
+
+export async function getMeController(req, res){
+  const user = await UserModel.findById(req.user.id)
+
+  res.status(200).json({
+    message : "User are fetched successfully",
+
+    user: {
+      id : user._id,
+      email : user.email,
+      username : user.username
+    }
+  })
+}
+
+
 
 
 
